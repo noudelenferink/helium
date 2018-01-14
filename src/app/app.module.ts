@@ -3,6 +3,9 @@ import { NgModule } from '@angular/core';
 
 
 import { AppComponent } from './app.component';
+import { MaterialWrapperModuleModule } from './material-wrapper-module/material-wrapper-module.module';
+import { AppRoutingModule } from './app-routing.module';
+import { TournamentManagerModuleModule } from './tournament-manager-module/tournament-manager-module.module';
 
 
 @NgModule({
@@ -10,7 +13,10 @@ import { AppComponent } from './app.component';
     AppComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    MaterialWrapperModuleModule,
+    TournamentManagerModuleModule,
+    AppRoutingModule
   ],
   providers: [],
   bootstrap: [AppComponent]

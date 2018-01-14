@@ -1,0 +1,64 @@
+<section class="mat-typography">
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>Players ({{players.length}})</mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-list role="list">
+      <mat-list-item role="listitem" *ngFor="let player of players | sortObject:'Name'" fxLayout="row">
+        <span fxFlex="80">{{player.Name}}</span>
+        <mat-select fxFlex="20" placeholder="Category" [(ngModel)]="player.Category">
+          <mat-option *ngFor="let category of categories" [value]="category">
+            {{ category.Name }}
+          </mat-option>
+        </mat-select>
+        <button mat-icon-button (click)="removePlayer(player)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-list-item>
+    </mat-list>
+    <section *ngIf="showCreatePlayer">
+      <form>
+        <mat-form-field>
+          <input matInput placeholder="Name" name="Name" [(ngModel)]="newPlayer.Name" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-select placeholder="Category" [(value)]="newPlayer.Category">
+            <mat-option *ngFor="let category of categories" [value]="category.Id">
+              {{ category.Name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+      <button mat-button (click)="addPlayer()">Add player</button>
+      <button mat-button (click)="cancelCreatePlayer()">Cancel</button>
+    </section>
+    <button mat-button mat-raised-button (click)="createPlayer()" *ngIf="!showCreatePlayer">Create player</button>
+  </mat-expansion-panel>
+
+
+  <section>
+    <div>
+    <mat-form-field>
+      <input matInput placeholder="Players per team" type="number" [(ngModel)]="numPlayersPerTeam" style="text-align: right" />
+    </mat-form-field>
+    <button mat-button mat-raised-button color="primary" (click)="generateTeams()">Generate teams</button>
+    
+  </div>
+    <div fxLayout="row"><h2 fxFlex>Teams</h2></div>
+    <div fxLayout="column">
+    <mat-expansion-panel *ngFor="let team of teams;  let i = index" fxFlex="100">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Team {{ i + 1 }}</mat-panel-title>
+          <mat-panel-description># players: {{ team.Players.length }}</mat-panel-description>
+        </mat-expansion-panel-header>
+        <mat-list role="list">
+            <mat-list-item role="listitem" *ngFor="let player of team.Players | sortObject:['Category.Id','Name']; let i = index" fxLayout="row">
+                <span class="mat-caption">{{ i + 1}} {{player.Name}}</span>
+                <!-- <span fxFlex="40">{{player.Category.Name}}</span> -->
+              </mat-list-item>
+        </mat-list>
+        </mat-expansion-panel>
+      </div>
+  </section>
+</section>
