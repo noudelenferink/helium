@@ -1,0 +1,62 @@
+<section class="mat-typography" style="padding: 20px" fxLayout="column">
+  <div fxLayout="row">
+    <h2 fxFlex>Teams ({{teams.length}})</h2>
+    <button mat-button (click)="setDummyData()">Dummy</button>
+  </div>
+  <form name="addTeam" (submit)="addTeam()">
+      <div fxLayout="column">
+        <mat-form-field fxFlex="30">
+          <input type="text" matInput name="name" placeholder="Team name" [(ngModel)]="teamNameToAdd">
+          <button mat-icon-button color="primary" matSuffix type="submit">
+            <mat-icon>add</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+    </form>
+  <div fxLayout="column">
+    <mat-list fxFlex="100">
+      <mat-list-item *ngFor="let team of teams">{{team.Name}}</mat-list-item>
+    </mat-list>
+  </div>
+
+  <div fxLayout="column" *ngIf="teams.length > 1">
+    <mat-form-field>
+      <mat-select placeholder="Tournament type" [(ngModel)]="tournamentTypeId">
+        <mat-option *ngFor="let type of tournamentTypes" [value]="type.Id" [disabled]="type.Id !== 1">
+          {{ type.Name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <section *ngIf="tournamentTypeId === 1">
+    <div fxLayout="column">
+      <mat-form-field>
+        <input type="number" min="1" [max]="getMaxGroups()" matInput placeholder="Number of groups" [(ngModel)]="numberOfGroups">
+      </mat-form-field>
+      <mat-form-field>
+        <input type="number" min="2" [max]="teams.length" step="2" matInput placeholder="Number of teams in knockout phase" [(ngModel)]="teamsInKnockoutPhase">
+      </mat-form-field>
+      <button mat-button mat-raised-button color="primary" (click)="generateGroups()">Generate groups</button>
+      <mat-list>
+        <mat-list-item *ngFor="let group of groups">
+          <div>{{ group.Name }}</div>
+          <mat-list role="list" fxLayout="row">
+            <mat-list-item role="listitem" *ngFor="let team of group.Teams | sortObject:['Name']; let i = index">
+              <span class="mat-caption">{{team.Name}}</span>
+            </mat-list-item>
+          </mat-list>
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </section>
+  <button mat-button mat-raised-button color="primary" (click)="generateMatches()" *ngIf="tournamentTypeId">Generate matches</button>
+  <section *ngIf="tournamentMatches">
+    <h2>Tournament matches</h2>
+    <div fxLayout="column">
+      <mat-list>
+        <mat-list-item *ngFor="let match of tournamentMatches" fxLayout="row"><span style="text-align: right">{{match.HomeTeam.Name}}</span> - <span>{{match.AwayTeam.Name}}</span></mat-list-item>
+      </mat-list>
+    </div>
+  </section>
+</section>

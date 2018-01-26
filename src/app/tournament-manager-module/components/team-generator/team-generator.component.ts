@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Category } from '../../../shared/models/category';
 import { Player } from '../../../shared/models/player';
 import { Team } from '../../../shared/models/team';
-import { randomBytes } from 'crypto';
 import { DummyService } from '../../dummy.service';
 
 @Component({
@@ -19,7 +18,7 @@ export class TeamGeneratorComponent implements OnInit {
   players: Array<Player>;
   categories: Array<Category>;
 
-  constructor(private dummyService:DummyService) { }
+  constructor(private dummyService: DummyService) { }
 
   ngOnInit() {
     this.categories = this.dummyService.getCategories();
