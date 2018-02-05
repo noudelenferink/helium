@@ -55,7 +55,7 @@
     <h2>Tournament matches</h2>
     <div fxLayout="column">
       <mat-list>
-        <mat-list-item *ngFor="let match of tournamentMatches" fxLayout="row"><span style="text-align: right">{{match.HomeTeam.Name}}</span> - <span>{{match.AwayTeam.Name}}</span></mat-list-item>
+        <mat-list-item *ngFor="let match of tournamentMatches" fxLayout="row"><span style="text-align: right">{{match.HomeTeam ? match.HomeTeam.Name : match.HomeOrigin.Name}}</span> - <span>{{match.AwayTeam ? match.AwayTeam.Name : match.AwayOrigin.Name}}</span></mat-list-item>
       </mat-list>
     </div>
   </section>

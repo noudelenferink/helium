@@ -77,7 +77,7 @@ export class TournamentGeneratorComponent implements OnInit {
     this.tournamentMatches = new Array<TournamentMatch>();
     if (this.tournamentTypeId === 1 || this.tournamentTypeId === 2) {
       this.generateGroupPhaseMatches();
-      //this.generateKnockoutPhaseMatches();
+      // this.generateKnockoutPhaseMatches();
       this.knockout();
     }
   }
@@ -117,13 +117,69 @@ export class TournamentGeneratorComponent implements OnInit {
 
   knockout() {
     let numTeams = this.teamsInKnockoutPhase;
-    let numRounds = Math.log(numTeams) / Math.log(2);
+    let numRounds = Math.floor(Math.log(numTeams) / Math.log(2));
     for (let currRound = 1; currRound <= numRounds; currRound++) {
       console.log('Round ' + (numRounds + 1 - currRound) + ' with ' + Math.pow(2, currRound) + ' matches');
     }
+
+    let teamsInKnockoutPhase = this.calculateTeamsInKnockoutPhase();
+    let final = this.createKnockoutMatches(1, teamsInKnockoutPhase, numRounds);
+    console.log(final);
   }
 
-  generateKnockoutPhaseMatches() {
+
+
+  createKnockoutMatches(matchesInCurrentRound: number, teamsInKnockoutPhase: Array<KnockoutInfo>, numRounds: number): TestMatch {
+    let match = new TournamentMatch();
+    
+    let currRound = Math.floor(Math.log(matchesInCurrentRound * 2) / Math.log(2));
+    match.Name = '1 / ' + matchesInCurrentRound + 'final ' + (numRounds + 1 - currRound);
+    let numMatchesInPrecedingRound = Math.pow(2, matchesInCurrentRound);
+    if (numMatchesInPrecedingRound <= this.teamsInKnockoutPhase) {
+      match.HomeOrigin = new KOOrigin();
+      match.HomeOrigin.SoccerMatch = this.createKnockoutMatches(numMatchesInPrecedingRound, teamsInKnockoutPhase, numRounds);
+      match.HomeOrigin.Name = 'Winner of ' + match.Name + 'final';
+      match.AwayOrigin = new KOOrigin();
+      match.AwayOrigin.SoccerMatch = this.createKnockoutMatches(numMatchesInPrecedingRound, teamsInKnockoutPhase, numRounds);
+    } else {
+      // First knockout round, get origin from groups;
+
+      let bestGroupPos = Math.min.apply(Math, teamsInKnockoutPhase.map(function (o) { return o.GroupPosition; }));
+      let bests = teamsInKnockoutPhase.filter(k => k.GroupPosition === bestGroupPos);
+      if (bests.length > 1) {
+        bests = bests.filter(l => l.Rank === Math.min.apply(Math, bests.map(k => k.Rank)));
+      }
+
+      let best = bests.shift();
+      teamsInKnockoutPhase.splice(teamsInKnockoutPhase.indexOf(best), 1);
+
+      let worstGroupPos = Math.max.apply(Math, teamsInKnockoutPhase.map(function (o) { return o.GroupPosition; }));
+      let worsts = teamsInKnockoutPhase.filter(k => k.GroupPosition === worstGroupPos);
+      if (worsts.length > 1) {
+        worsts = worsts.filter(h => h.Rank === Math.max.apply(Math, worsts.map(k => k.Rank)));
+      }
+
+      let worst = worsts.shift();
+      teamsInKnockoutPhase.splice(teamsInKnockoutPhase.indexOf(worst), 1);
+
+      match.HomeOrigin = new KOOrigin();
+      match.HomeOrigin.Group = best.Group;
+      match.HomeOrigin.GroupPosition = best.GroupPosition;
+      match.HomeOrigin.Rank = best.Rank;
+      match.HomeOrigin.Name = best.Name;
+
+      match.AwayOrigin = new KOOrigin();
+      match.AwayOrigin.Group = worst.Group;
+      match.AwayOrigin.GroupPosition = worst.GroupPosition;
+      match.AwayOrigin.Rank = worst.Rank;
+      match.AwayOrigin.Name = worst.Name;
+    }
+
+    this.tournamentMatches.push(match);
+    return match;
+  }
+
+  calculateTeamsInKnockoutPhase() {
     let rankPipe = new RankPipe();
     let knockoutInfo = new Array<KnockoutInfo>();
     let teamsPerGroup = this.teamsInKnockoutPhase / this.numberOfGroups;
@@ -152,45 +208,44 @@ export class TournamentGeneratorComponent implements OnInit {
         RoundNumber: 1
       }));
     }
-    console.log('First knockout round', knockoutInfo);
-    knockoutInfo = this.generateNextKnockoutRound(knockoutInfo);
-    console.log('Incl. next knockout round', knockoutInfo);
-  }
-
-  generateNextKnockoutRound(knockoutInfo: Array<KnockoutInfo>): any {
-    let roundNumber = Math.max.apply(Math, knockoutInfo.map(k => k.RoundNumber));
-    let numRemainingTeams = knockoutInfo.length;
-    let workingSet = knockoutInfo.slice(0);
-    while (numRemainingTeams >= 2) {
-      for (let i = 0; i < (numRemainingTeams / 2); i++) {
-        let lowestGroupPos = Math.min.apply(Math, workingSet.map(function (o) { return o.GroupPosition; }));
-        let lowests = workingSet.filter(k => k.GroupPosition === lowestGroupPos);
-        if (lowests.length > 1) {
-          lowests = lowests.filter(l => l.Rank === Math.min.apply(Math, lowests.map(k => k.Rank)));
-        }
-        let lowest = lowests.shift();
-        workingSet.splice(workingSet.indexOf(lowest), 1);
-        let highestGroupPos = Math.max.apply(Math, workingSet.map(function (o) { return o.GroupPosition; }));
-        let higests = workingSet.filter(k => k.GroupPosition === highestGroupPos);
-        if (higests.length > 1) {
-          higests = higests.filter(h => h.Rank === Math.max.apply(Math, higests.map(k => k.Rank)));
-        }
-        let highest = higests[0];
-        workingSet.splice(workingSet.indexOf(highest), 1);
-        console.log(lowest, highest);
-        let newKnockout = new KnockoutInfo({
-          Id: knockoutInfo.length,
-          RoundNumber: roundNumber++
-        });
-        knockoutInfo.push(newKnockout);
-        knockoutInfo.find(k => k === highest).NextKnockout = newKnockout;
-        knockoutInfo.find(k => k === lowest).NextKnockout = newKnockout;
-        numRemainingTeams /= 2;
-      }
-    }
 
     return knockoutInfo;
   }
+
+  // generateNextKnockoutRound(knockoutInfo: Array<KnockoutInfo>): any {
+  //   let roundNumber = Math.max.apply(Math, knockoutInfo.map(k => k.RoundNumber));
+  //   let numRemainingTeams = knockoutInfo.length;
+  //   let workingSet = knockoutInfo.slice(0);
+  //   while (numRemainingTeams >= 2) {
+  //     for (let i = 0; i <= (numRemainingTeams / 2); i++) {
+  //       let lowestGroupPos = Math.min.apply(Math, workingSet.map(function (o) { return o.GroupPosition; }));
+  //       let lowests = workingSet.filter(k => k.GroupPosition === lowestGroupPos);
+  //       if (lowests.length > 1) {
+  //         lowests = lowests.filter(l => l.Rank === Math.min.apply(Math, lowests.map(k => k.Rank)));
+  //       }
+  //       let lowest = lowests.shift();
+  //       workingSet.splice(workingSet.indexOf(lowest), 1);
+  //       let highestGroupPos = Math.max.apply(Math, workingSet.map(function (o) { return o.GroupPosition; }));
+  //       let higests = workingSet.filter(k => k.GroupPosition === highestGroupPos);
+  //       if (higests.length > 1) {
+  //         higests = higests.filter(h => h.Rank === Math.max.apply(Math, higests.map(k => k.Rank)));
+  //       }
+  //       let highest = higests[0];
+  //       workingSet.splice(workingSet.indexOf(highest), 1);
+  //       console.log(lowest, highest);
+  //       let newKnockout = new KnockoutInfo({
+  //         Id: knockoutInfo.length,
+  //         RoundNumber: roundNumber++
+  //       });
+  //       knockoutInfo.push(newKnockout);
+  //       knockoutInfo.find(k => k === highest).NextKnockout = newKnockout;
+  //       knockoutInfo.find(k => k === lowest).NextKnockout = newKnockout;
+  //       numRemainingTeams -= 2;
+  //     }
+  //   }
+
+  //   return knockoutInfo;
+  // }
 
   setDummyData() {
     this.teams = new Array<Team>(
@@ -200,12 +255,35 @@ export class TournamentGeneratorComponent implements OnInit {
       new Team({ Id: 3, Name: 'Team 4' }),
       new Team({ Id: 4, Name: 'Team 5' }),
       new Team({ Id: 5, Name: 'Team 6' }),
+      new Team({ Id: 6, Name: 'Team 7' }),
+      new Team({ Id: 7, Name: 'Team 8' }),
+      new Team({ Id: 8, Name: 'Team 9' }),
+      new Team({ Id: 9, Name: 'Team 10' }),
+      new Team({ Id: 10, Name: 'Team 11' }),
+      new Team({ Id: 11, Name: 'Team 12' }),
+
     );
 
     this.resetTeamNameToAdd();
     this.tournamentTypeId = 1;
     this.numberOfGroups = 3;
-    this.teamsInKnockoutPhase = 4;
+    this.teamsInKnockoutPhase = 8;
     this.generateGroups();
   }
+}
+
+
+class TestMatch {
+  HomeOrigin: KOOrigin;
+  AwayOrigin: KOOrigin;
+  Name: string;
+}
+
+export class KOOrigin {
+  RoundNumber: number;
+  Group: TournamentGroup;
+  GroupPosition: number;
+  SoccerMatch: TestMatch;
+  Rank: number;
+  Name: string;
 }

@@ -2,6 +2,7 @@ import { ModelBase } from './model-base';
 import { Team } from './team';
 import { Tournament } from './tournament';
 import { KnockoutInfo } from './knockout-info';
+import { KOOrigin } from '../../tournament-manager-module/components/tournament-generator/tournament-generator.component';
 
 export class TournamentMatch extends ModelBase<TournamentMatch> {
     private _HomeTeam: Team;
@@ -28,11 +29,28 @@ export class TournamentMatch extends ModelBase<TournamentMatch> {
         this._Tournament = v;
     }
 
-    private _HomeKnockoutInfo: KnockoutInfo;
-    public get HomeKnockoutInfo(): KnockoutInfo {
-        return this._HomeKnockoutInfo;
+    private _Name: string;
+    public get Name(): string {
+        return this._Name;
     }
-    public set HomeKnockoutInfo(v: KnockoutInfo) {
-        this._HomeKnockoutInfo = v;
+    public set Name(v: string) {
+        this._Name = v;
+    }
+
+
+    private _HomeOrigin: KOOrigin;
+    public get HomeOrigin(): KOOrigin {
+        return this._HomeOrigin;
+    }
+    public set HomeOrigin(v: KOOrigin) {
+        this._HomeOrigin = v;
+    }
+
+    private _AwayOrigin: KOOrigin;
+    public get AwayOrigin(): KOOrigin {
+        return this._AwayOrigin;
+    }
+    public set AwayOrigin(v: KOOrigin) {
+        this._AwayOrigin = v;
     }
 }
