@@ -34,9 +34,11 @@
       <mat-form-field>
         <input type="number" min="1" [max]="getMaxGroups()" matInput placeholder="Number of groups" [(ngModel)]="numberOfGroups">
       </mat-form-field>
-      <mat-form-field>
-        <input type="number" min="2" [max]="teams.length" step="2" matInput placeholder="Number of teams in knockout phase" [(ngModel)]="teamsInKnockoutPhase">
-      </mat-form-field>
+        <label>Number of teams in knockout</label>
+        <div fxFlex="60"><mat-slider [step]="1" [(ngModel)]="knockoutExp" [max]="calcMax()" (change)="calcExp()"></mat-slider>
+        <span>{{teamsInKnockoutPhase}}</span></div>
+
+      
       <button mat-button mat-raised-button color="primary" (click)="generateGroups()">Generate groups</button>
       <mat-list>
         <mat-list-item *ngFor="let group of groups">

@@ -20,6 +20,7 @@ export class TournamentGeneratorComponent implements OnInit {
   numberOfGroups: number;
   teamsInKnockoutPhase: number;
   tournamentMatches: Array<TournamentMatch>;
+  knockoutExp: number;
   constructor() { }
 
   ngOnInit() {
@@ -41,6 +42,14 @@ export class TournamentGeneratorComponent implements OnInit {
       this.teams.push(newTeam);
       this.resetTeamNameToAdd();
     }
+  }
+
+  calcMax() {
+    return Math.floor(Math.log(this.teams.length) / Math.log(2));
+  }
+
+  calcExp() {
+    this.teamsInKnockoutPhase = Math.pow(2, this.knockoutExp);
   }
 
   resetTeamNameToAdd(): any {
@@ -133,14 +142,15 @@ export class TournamentGeneratorComponent implements OnInit {
     let match = new TournamentMatch();
     
     let currRound = Math.floor(Math.log(matchesInCurrentRound * 2) / Math.log(2));
-    match.Name = '1 / ' + matchesInCurrentRound + 'final ' + (numRounds + 1 - currRound);
+    match.Name = '1 / ' + matchesInCurrentRound + 'final - Round' + (numRounds + 1 - currRound);
     let numMatchesInPrecedingRound = Math.pow(2, matchesInCurrentRound);
     if (numMatchesInPrecedingRound <= this.teamsInKnockoutPhase) {
       match.HomeOrigin = new KOOrigin();
       match.HomeOrigin.SoccerMatch = this.createKnockoutMatches(numMatchesInPrecedingRound, teamsInKnockoutPhase, numRounds);
-      match.HomeOrigin.Name = 'Winner of ' + match.Name + 'final';
+      match.HomeOrigin.Name = 'Winner of ' + match.HomeOrigin.SoccerMatch.Name;
       match.AwayOrigin = new KOOrigin();
       match.AwayOrigin.SoccerMatch = this.createKnockoutMatches(numMatchesInPrecedingRound, teamsInKnockoutPhase, numRounds);
+      match.AwayOrigin.Name = 'Winner of ' + match.AwayOrigin.SoccerMatch.Name;
     } else {
       // First knockout round, get origin from groups;
 
